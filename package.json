@@ -1,0 +1,11 @@
+{
+  "name": "hillshot-server",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node online-server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
