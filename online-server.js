@@ -97,7 +97,7 @@ http.createServer(async (req, res) => {
       return json(res, 200, {party:publicParty(p)});
     }
     const config = Object.assign({}, b.config || {}, {members:p.members.slice()});
-    p.game = {id:crypto.randomBytes(4).toString('hex'), seed:Number(b.seed || Date.now()), config, actions:[]};
+    p.game = {id:crypto.randomBytes(4).toString('hex'), seed:Number(b.seed || Date.now()), config, actions:[], nextActionId:1};
     touch(p, name);
     return json(res, 200, {party:publicParty(p)});
   }
@@ -105,9 +105,11 @@ http.createServer(async (req, res) => {
     const b = await body(req), c = String(b.code || '').toUpperCase(), name = cleanName(b.name), p = parties.get(c);
     if (!p || !p.game || !p.members.includes(name)) return json(res, 404, {error:'game not found'});
     const action = b.action || {};
-    action.id = p.game.actions.length + 1;
+    action.id = p.game.nextActionId || (p.game.actions.length + 1);
+    p.game.nextActionId = action.id + 1;
     action.name = name;
     p.game.actions.push(action);
+    if (p.game.actions.length > 400) p.game.actions.shift();
     touch(p, name);
     return json(res, 200, action);
   }
