@@ -92,7 +92,12 @@ http.createServer(async (req, res) => {
   if (req.method === 'POST' && u.pathname === '/api/game/start') {
     const b = await body(req), c = String(b.code || '').toUpperCase(), name = cleanName(b.name), p = parties.get(c);
     if (!p || !p.members.includes(name)) return json(res, 404, {error:'party not found'});
-    p.game = {id:crypto.randomBytes(4).toString('hex'), seed:Number(b.seed || Date.now()), config:b.config || {}, actions:[]};
+    if (p.game && !b.restart) {
+      touch(p, name);
+      return json(res, 200, {party:publicParty(p)});
+    }
+    const config = Object.assign({}, b.config || {}, {members:p.members.slice()});
+    p.game = {id:crypto.randomBytes(4).toString('hex'), seed:Number(b.seed || Date.now()), config, actions:[]};
     touch(p, name);
     return json(res, 200, {party:publicParty(p)});
   }
